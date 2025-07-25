@@ -1,0 +1,65 @@
+# Default configuration for Color Correction System
+
+[detection]
+# ColorChecker detection parameters
+confidence_threshold = 0.8
+max_detection_attempts = 3
+perspective_correction_enabled = true
+
+[detection.mcc]
+# OpenCV MCC detector settings  
+enabled = true
+detector_type = "TYPECHECKERDETECTOR"
+minContourPoints = 4
+
+[detection.contour]
+# Contour-based detection fallback
+enabled = true
+contour_area_min = 1000
+contour_area_max = 50000
+approx_epsilon_factor = 0.02
+
+[detection.template]
+# Template matching fallback
+enabled = true
+match_threshold = 0.7
+scale_range = [0.5, 2.0]
+
+[processing]
+# Color processing parameters
+gamma_correction = 2.4
+statistical_method = "robust_mean"
+outlier_filter_enabled = true
+outlier_threshold = 2.0
+
+[correction]
+# Matrix calculation parameters
+method = "svd_least_squares"
+regularization_enabled = true
+regularization_factor = 1e-6
+validation_enabled = true
+
+[correction.quality_metrics]
+# Quality validation thresholds
+max_delta_e = 2.0
+max_condition_number = 1000.0
+min_determinant = 0.001
+
+[optimization]
+# Performance optimization settings
+gpu_enabled = true
+lut_enabled = true
+lut_resolution = 256
+parallel_processing = true
+thread_count = 0  # 0 = auto-detect
+
+[optimization.gpu]
+# GPU acceleration settings
+opencl_enabled = true
+cuda_enabled = true
+device_selection = "auto"  # auto, cpu, gpu
+
+[logging]
+# Logging configuration
+level = "info"  # debug, info, warn, error
+output_file = ""  # empty = console only
