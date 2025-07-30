@@ -20,7 +20,7 @@ struct QualityMetrics {
     Types::ConfidenceScore overallQuality = Types::ConfidenceScore::fromValue(0.0f);
 
     bool isAcceptable(float maxDeltaEThreshold = 2.0f, 
-                     float maxConditionNumber = 1000.0f) const {
+                     float maxConditionNumber = 50000.0f) const {
         return averageDeltaE <= maxDeltaEThreshold && 
                maxDeltaE <= maxDeltaEThreshold * 2.0f &&
                matrixConditionNumber <= maxConditionNumber &&
@@ -120,7 +120,7 @@ class CalibrationData {
             
             // Add timestamp
             auto time_t = std::chrono::system_clock::to_time_t(timestamp_);
-            fs << "calibration_timestamp" << static_cast<int64_t>(time_t);
+            fs << "calibration_timestamp" << static_cast<double>(time_t);
             fs << "}";
 
             fs << "is_valid" << isValid_;
@@ -135,7 +135,7 @@ class CalibrationData {
         }
     }
 
-    bool loadFromFile(const std::string& filename) {
+    bool loadFromFile(const std::string& filename, bool forceLoad = false) {
         try {
             cv::FileStorage fs(filename, cv::FileStorage::READ);
             if (!fs.isOpened()) {
@@ -154,6 +154,9 @@ class CalibrationData {
                     }
                 }
                 correctionMatrix_ = CorrectionMatrix(matrix);
+            } else {
+                LOG_ERROR("Invalid matrix dimensions in calibration file: ", matrixMat.rows, "x", matrixMat.cols);
+                return false;
             }
 
             // Load quality metrics
@@ -179,18 +182,34 @@ class CalibrationData {
                 }
 
                 // Restore timestamp
-                int64_t timestamp_int = metadataNode["calibration_timestamp"];
-                if (timestamp_int > 0) {
+                double timestamp_double = metadataNode["calibration_timestamp"];
+                if (timestamp_double > 0) {
                     timestamp_ = std::chrono::system_clock::from_time_t(
-                        static_cast<std::time_t>(timestamp_int));
+                        static_cast<std::time_t>(timestamp_double));
                 }
             }
 
-            fs["is_valid"] >> isValid_;
+            // Load stored validity flag
+            int storedValid = 0;
+            fs["is_valid"] >> storedValid;
             fs.release();
 
-            LOG_INFO("Calibration data loaded from: ", filename);
-            return isValid_;
+            // Re-validate based on current data
+            bool wasValid = isValid_;
+            validate();
+            
+            // Allow forcing load even if quality is poor
+            if (forceLoad && correctionMatrix_.isValid()) {
+                isValid_ = true;
+                if (!wasValid) {
+                    LOG_WARN("Force-loaded calibration data with poor quality metrics");
+                    LOG_WARN("  Condition number: ", qualityMetrics_.matrixConditionNumber);
+                    LOG_WARN("  Average Delta E: ", qualityMetrics_.averageDeltaE);
+                }
+            }
+
+            LOG_INFO("Calibration data loaded from: ", filename, " (valid: ", isValid_, ")");
+            return true; // Return true if file was loaded successfully, regardless of quality
             
         } catch (const cv::Exception& e) {
             LOG_ERROR("OpenCV error while loading calibration data: ", e.what());

@@ -1,12 +1,14 @@
 #include <opencv2/opencv.hpp>
 #include <iostream>
 #include <string>
+#include <filesystem>
 
 // Include implementation headers (in a real build these would be properly linked)
 #include "../internal/detection/MultiLevelDetector.hpp"
 #include "../internal/processing/CorrectionMatrixCalculator.hpp"
 #include "../internal/processing/QualityMetrics.hpp"
 #include "../internal/processing/ImagePreprocessor.hpp"
+#include "../internal/domain/CalibrationData.hpp"
 #include <shared/utils/Logger.hpp>
 
 using namespace ColorCorrection;

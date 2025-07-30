@@ -34,7 +34,11 @@ if(CUDA_FOUND)
 endif()
 
 # Main color correction library
-add_library(color_correction STATIC)
+add_library(color_correction STATIC ${INTERNAL_SOURCES})
+target_include_directories(color_correction
+    PUBLIC interface
+    PRIVATE internal
+)
 target_link_libraries(color_correction 
     PUBLIC color_correction_interface
     PRIVATE color_correction_internal

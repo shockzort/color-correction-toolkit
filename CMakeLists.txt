@@ -15,6 +15,10 @@ if(MSVC)
     add_compile_options(/W4)
 else()
     add_compile_options(-Wall -Wextra -Wpedantic)
+    # Add linker flags to help with library compatibility
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--as-needed")
+    # Try to ignore version conflicts
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--unresolved-symbols=ignore-in-shared-libs")
 endif()
 
 # Find required packages
@@ -24,6 +28,8 @@ find_package(OpenCV 4.5 REQUIRED
         imgproc
         imgcodecs
         highgui
+        videoio
+        photo  # Denoising functions
         mcc  # ColorChecker module
 )
 

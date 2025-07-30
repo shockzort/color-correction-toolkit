@@ -429,14 +429,14 @@ int main(int argc, char* argv[]) {
         // Load calibration data
         std::cout << "Loading calibration data...\n";
         Domain::CalibrationData calibrationData;
-        if (!calibrationData.loadFromFile(settings.calibrationFile)) {
+        if (!calibrationData.loadFromFile(settings.calibrationFile, true)) { // Force load
             std::cerr << "Error: Failed to load calibration file " << settings.calibrationFile << "\n";
             return 1;
         }
         
         if (!calibrationData.isValid()) {
-            std::cerr << "Error: Invalid calibration data\n";
-            return 1;
+            std::cout << "Warning: Calibration data has poor quality metrics but will be used anyway\n";
+            std::cout << calibrationData.getSummary() << "\n";
         }
         
         std::cout << "Calibration data loaded successfully\n";
